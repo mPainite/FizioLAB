@@ -8,26 +8,29 @@ public class DraggableCloth : MonoBehaviour
 
     [Header("Sürtünme Ayarlarý")]
     public int chargeLevel = 0;
-    public int maxCharge = 5; // Kumaþýn çubuða 5 kere sürtünmesi yeterli olsun
+    public int maxCharge = 5;
     public bool isCharged = false;
 
     [Header("Arayüz Baðlantýsý")]
     public TextMeshProUGUI taskText;
 
-    // Fare objeye týkladýðýnda çalýþýr
     void OnMouseDown()
     {
         mZCoord = Camera.main.WorldToScreenPoint(gameObject.transform.position).z;
         mOffset = gameObject.transform.position - GetMouseAsWorldPoint();
     }
 
-    // Fareyi sürüklediðimiz sürece çalýþýr
     void OnMouseDrag()
     {
-        transform.position = GetMouseAsWorldPoint() + mOffset;
+        Vector3 newPos = GetMouseAsWorldPoint() + mOffset;
+
+        // Kumaþýn masadan havalanmasýný engellemek için yüksekliði (Y) kilitliyoruz.
+        // Kumaþlarýný Y: 1.06 yüksekliðine koymuþtuk, burada o deðeri sabitliyoruz.
+        newPos.y = 1.06f;
+
+        transform.position = newPos;
     }
 
-    // Ekran koordinatlarýný 3D dünya koordinatlarýna çevirir
     private Vector3 GetMouseAsWorldPoint()
     {
         Vector3 mousePoint = Input.mousePosition;
@@ -35,7 +38,6 @@ public class DraggableCloth : MonoBehaviour
         return Camera.main.ScreenToWorldPoint(mousePoint);
     }
 
-    // Kumaþ "Rod" etiketli çubuðun içinden geçtiðinde (sürtündüðünde) çalýþýr
     void OnTriggerExit(Collider other)
     {
         if (other.CompareTag("Rod") && !isCharged)
@@ -48,7 +50,6 @@ public class DraggableCloth : MonoBehaviour
                 isCharged = true;
                 taskText.text = "Harika! Çubuk yüklendi. Þimdi onu standa asabilirsin.";
                 taskText.color = Color.green;
-                // Ýlerleyen aþamalarda buraya ufak bir elektrik partikül efekti ekleyeceðiz.
             }
         }
     }
