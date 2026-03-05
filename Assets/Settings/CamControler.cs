@@ -1,27 +1,31 @@
 using UnityEngine;
-using Unity.Cinemachine; // Yeni Cinemachine kütüphanesi
-using UnityEngine.InputSystem; // Yeni Giriþ Sistemi kütüphanesi
+using Unity.Cinemachine;
+using UnityEngine.InputSystem;
 
-public class CamControler : MonoBehaviour
+public class CamControl : MonoBehaviour
 {
     private CinemachineInputAxisController axisController;
 
     void Start()
     {
-        // Kameradaki kontrolcü bileþenini buluyoruz
+        // Kamerayý kontrol eden asýl bileþeni buluyoruz
         axisController = GetComponent<CinemachineInputAxisController>();
     }
 
     void Update()
     {
-        // Fare objesinin varlýðýný kontrol et ve sol týk basýlý mý bak
-        if (Mouse.current != null && Mouse.current.leftButton.isPressed)
+        // Eðer sistemde bir fare varsa ve kamera kontrolcüsü yerindeyse:
+        if (Mouse.current != null && axisController != null)
         {
-            axisController.enabled = true; // Basýlýyken çalýþtýr
-        }
-        else
-        {
-            axisController.enabled = false; // Býrakýnca durdur
+            // SADECE farenin SAÐ tuþuna (rightButton) basýlý tutulduðunda kamerayý aktifleþtir
+            if (Mouse.current.rightButton.isPressed)
+            {
+                axisController.enabled = true;
+            }
+            else // Sað tuþ býrakýldýðý an (veya sol týka basýldýðýnda) kamerayý dondur
+            {
+                axisController.enabled = false;
+            }
         }
     }
 }
