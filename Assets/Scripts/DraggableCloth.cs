@@ -28,14 +28,26 @@ public class DraggableCloth : MonoBehaviour
         originalColor = rend.material.color;
     }
 
+    public void ResetCloth()
+    {
+        chargeLevel = 0;
+        isCharged = false;
+        transform.position = startPos;
+        if (progressText != null) progressText.text = "";
+        if (rend != null) rend.material.color = originalColor;
+    }
+
     void OnMouseDown()
     {
+        if (!enabled) return;
         mZCoord = Camera.main.WorldToScreenPoint(gameObject.transform.position).z;
         mOffset = gameObject.transform.position - GetMouseAsWorldPoint();
     }
 
+
     void OnMouseDrag()
     {
+        if (!enabled) return;
         Vector3 newPos = GetMouseAsWorldPoint() + mOffset;
         newPos.y = 1.06f;
         transform.position = newPos;
@@ -43,8 +55,8 @@ public class DraggableCloth : MonoBehaviour
 
     void OnMouseUp()
     {
-        transform.position = startPos;
-        // Kumaþý býraktýðýmýzda ekrandaki yüzde yazýsý gizlensin
+        transform.position = startPos; // startPos doðru mu?
+        transform.rotation = Quaternion.identity;
         if (progressText != null && !isCharged)
         {
             progressText.text = "";
@@ -61,43 +73,44 @@ public class DraggableCloth : MonoBehaviour
     // Enter yerine tekrar Exit yaptýk. Ýleri-geri sürtme hareketini kusursuz algýlar.
     void OnTriggerExit(Collider other)
     {
+        if (!enabled) return;
         Debug.Log("Kumaþ þu objeden ayrýldý: " + other.name);
         if (other.CompareTag("Rod") && !isCharged)
         {
-            // Çarptýðýmýz çubuðun kimliðini (RodIdentity) alýyoruz
             RodIdentity hitRod = other.GetComponent<RodIdentity>();
-
-            // Eðer kimliði varsa iþlemleri baþlat
             if (hitRod != null)
             {
+                if (GameManager.Instance != null && GameManager.Instance.currentStep == 3)
+                {
+                    DraggableRod rod = other.GetComponent<DraggableRod>();
+                    if (rod != null)
+                    {
+                        bool isWool = gameObject.name == "WoolCloth";
+                        bool isSilk = gameObject.name == "SilkCloth";
+                        if (isWool && rod.myChargeType == "Plastic") return;
+                        if (isSilk && rod.myChargeType == "Glass") return;
+                    }
+                }
+
                 chargeLevel++;
-
-                // Yüzde hesaplama (Örn: 1/5 = %20)
                 int percentage = (chargeLevel * 100) / maxCharge;
-
-                // Ekrana çubuðun ismini ve doluluk yüzdesini yazdýr
                 progressText.text = hitRod.rodName + " Yükleniyor... %" + percentage;
-
                 rend.material.color = sparkColor;
                 Invoke("ResetColor", 0.15f);
 
                 if (chargeLevel >= maxCharge)
                 {
                     isCharged = true;
-                    taskText.text = "Harika! " + hitRod.rodName + " yüklendi. Þimdi onu standa asabilirsin.";
+                    DraggableRod hitDraggable = other.GetComponent<DraggableRod>();
+                    if (hitDraggable != null)
+                        hitDraggable.ChangeToChargedColor();
+
+                    taskText.text = "Harika! " + hitRod.rodName + " yüklendi. Simdi onu standa asabilirsin.";
                     taskText.color = Color.green;
-                    progressText.text = hitRod.rodName + " Tamamen Yüklendi!";
+                    progressText.text = hitRod.rodName + " Tamamen Yuklendi!";
                     progressText.color = Color.green;
                 }
             }
-        }
-    }
-
-    void ResetColor()
-    {
-        if (rend != null)
-        {
-            rend.material.color = originalColor;
         }
     }
 }

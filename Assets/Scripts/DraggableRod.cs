@@ -3,76 +3,71 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody))]
 public class DraggableRod : MonoBehaviour
 {
-    // Çubuğun o anki durumunu kesin olarak belirliyoruz (State Machine)
     public enum RodState { OnTable, Dragging, Suspended }
     public RodState currentState = RodState.OnTable;
 
     [Header("Asılma & Stand Ayarları")]
-    [Tooltip("Hinge Joint'in bulunduğu havada asılı olan obje")]
     public Transform hingeSnapPoint;
+    public Transform hingeSnapPointStep3;
     public float snapThreshold = 0.5f;
-    [Tooltip("Çubuğun masaya sürtünmeden havada sürükleneceği yükseklik")]
     public float dragHeight = 1.5f;
 
     [Header("Coulomb (Elektrostatik) Ayarları")]
-    [Tooltip("Çubuğun yük türü: Glass veya Plastic yazın")]
     public string myChargeType = "Glass";
-    public static DraggableRod suspendedRodInScene; // Asılı olan çubuğun hafızası
-    public float coulombForceMultiplier = 5.0f; // İtme/Çekme gücü
+    public static DraggableRod suspendedRodInScene;
+    public static DraggableRod suspendedRodInScene2;
+    public float coulombForceMultiplier = 5.0f;
 
     [Header("Efektler")]
     public Color chargedColor = Color.green;
     private Color originalColor;
     private Renderer rend;
 
-    // Arka plan değişkenleri
     private Rigidbody rb;
     private Vector3 startPos;
     private Quaternion startRot;
     private Camera mainCamera;
     private float dragDepth;
 
+    void Awake()
+    {
+        rend = GetComponent<Renderer>();
+        if (rend != null) originalColor = rend.material.color;
+    }
+
     void Start()
     {
         mainCamera = Camera.main;
         rb = GetComponent<Rigidbody>();
         rend = GetComponent<Renderer>();
-        if (rend != null) originalColor = rend.material.color;
-
-        // Çubuğun masadaki ilk halini hafızaya alıyoruz (Yamuk dönmesini engeller)
         startPos = transform.position;
         startRot = transform.rotation;
-
-        // Oyun başladığında çubuğu masaya kesin olarak sabitler
         ResetToTable();
+        if (rend != null) rend.material.color = originalColor;
+    }
+
+    private Transform GetActiveSnapPoint()
+    {
+        if (GameManager.Instance != null && GameManager.Instance.currentStep == 3)
+            return hingeSnapPointStep3 != null ? hingeSnapPointStep3 : hingeSnapPoint;
+        return hingeSnapPoint;
     }
 
     void OnMouseDown()
     {
-        // Çubuk asılıysa tıklamayı reddet
         if (currentState == RodState.Suspended) return;
-
         currentState = RodState.Dragging;
-
-        // Sürüklerken fizik motoru karışmasın diye donduruyoruz
         rb.isKinematic = true;
         rb.useGravity = false;
-
-        // Farenin 3D dünyadaki derinliğini hesaplıyoruz
         dragDepth = mainCamera.WorldToScreenPoint(transform.position).z;
     }
 
     void OnMouseDrag()
     {
         if (currentState != RodState.Dragging) return;
-
-        // Kusursuz sürükleme matematiği
         Vector3 mouseScreenPos = new Vector3(Input.mousePosition.x, Input.mousePosition.y, dragDepth);
         Vector3 newWorldPos = mainCamera.ScreenToWorldPoint(mouseScreenPos);
-
-        // Çubuğu masanın üstünde belirlediğimiz yüksekliğe kilitliyoruz
         newWorldPos.y = dragHeight;
-
         transform.position = newWorldPos;
     }
 
@@ -80,31 +75,59 @@ public class DraggableRod : MonoBehaviour
     {
         if (currentState != RodState.Dragging) return;
 
-        // Yüklü mü kontrol et
-        DraggableCloth[] cloths = FindObjectsByType<DraggableCloth>(FindObjectsSortMode.None);
-        bool isCharged = false;
-        foreach (var cloth in cloths)
+        if (GameManager.Instance != null)
         {
-            if (cloth.isCharged) isCharged = true;
+            int step = GameManager.Instance.currentStep;
+            DraggableCloth[] cloths = FindObjectsByType<DraggableCloth>(FindObjectsSortMode.None);
+            bool correctCharged = false;
+
+            foreach (var cloth in cloths)
+            {
+                if (step == 1 && cloth.gameObject.name == "SilkCloth" && cloth.isCharged) correctCharged = true;
+                if (step == 2 && cloth.gameObject.name == "WoolCloth" && cloth.isCharged) correctCharged = true;
+
+                if (step == 3)
+                {
+                    int subStep = GameManager.Instance.step3SubStep;
+                    if (subStep == 1 && myChargeType == "Plastic")
+                    {
+                        GameManager.Instance.taskText.text = "Önce cam çubuğu yünlü kumaşla yükleyip asın!";
+                        ResetToTable();
+                        return;
+                    }
+                    if (subStep == 2 && myChargeType == "Glass")
+                    {
+                        GameManager.Instance.taskText.text = "Simdi plastik çubuğu ipek kumaşla yükleyip asın!";
+                        ResetToTable();
+                        return;
+                    }
+                    if (subStep == 1 && myChargeType == "Glass" && cloth.gameObject.name == "WoolCloth" && cloth.isCharged) correctCharged = true;
+                    if (subStep == 2 && myChargeType == "Plastic" && cloth.gameObject.name == "SilkCloth" && cloth.isCharged) correctCharged = true;
+                }
+            }
+
+            if (!correctCharged)
+            {
+                if (step == 3 && myChargeType == "Glass")
+                    GameManager.Instance.taskText.text = "Cam çubuğu yünlü kumaşla yükleyin!";
+                else if (step == 3 && myChargeType == "Plastic")
+                    GameManager.Instance.taskText.text = "Plastik çubuğu ipek kumaşla yükleyin!";
+                else
+                    GameManager.Instance.taskText.text = "Once cubuğu dogru kumasla yukleyin!";
+                ResetToTable();
+                return;
+            }
         }
 
-        if (!isCharged)
-        {
-            if (GameManager.Instance != null)
-                GameManager.Instance.taskText.text = "⚠️ Önce çubuğu kumaşla yükleyin!";
-            ResetToTable();
-            return;
-        }
-
-        if (hingeSnapPoint != null)
+        Transform snapPoint = GetActiveSnapPoint();
+        if (snapPoint != null)
         {
             Vector2 rodFlatPos = new Vector2(transform.position.x, transform.position.z);
-            Vector2 hingeFlatPos = new Vector2(hingeSnapPoint.position.x, hingeSnapPoint.position.z);
+            Vector2 hingeFlatPos = new Vector2(snapPoint.position.x, snapPoint.position.z);
             float distance = Vector2.Distance(rodFlatPos, hingeFlatPos);
-
             if (distance <= snapThreshold)
             {
-                SnapToHinge();
+                SnapToHinge(snapPoint);
                 return;
             }
         }
@@ -120,93 +143,132 @@ public class DraggableRod : MonoBehaviour
     private void ResetToTable()
     {
         currentState = RodState.OnTable;
-
-        transform.position = startPos;
-        transform.rotation = startRot;
-
-        // Önce isKinematic=true yap, SONRA joint'i kopar
-        rb.isKinematic = true;
-        rb.useGravity = false;
-        // isKinematic=true iken velocity set etme, gerek yok zaten
+        if (rend != null) rend.material.color = originalColor;
 
         if (hingeSnapPoint != null)
         {
             HingeJoint joint = hingeSnapPoint.GetComponent<HingeJoint>();
-            if (joint != null && joint.connectedBody == rb)
-            {
-                joint.connectedBody = null;
-            }
+            if (joint != null) Destroy(joint);
+        }
+        if (hingeSnapPointStep3 != null)
+        {
+            HingeJoint joint = hingeSnapPointStep3.GetComponent<HingeJoint>();
+            if (joint != null) Destroy(joint);
         }
 
+        rb.linearVelocity = Vector3.zero;
+        rb.angularVelocity = Vector3.zero;
+        rb.isKinematic = true;
+        rb.useGravity = false;
+
+        transform.position = startPos;
+        transform.rotation = startRot;
+
         if (suspendedRodInScene == this) suspendedRodInScene = null;
+        if (suspendedRodInScene2 == this) suspendedRodInScene2 = null;
     }
 
-    private void SnapToHinge()
+    private void SnapToHinge(Transform snapPoint)
     {
         currentState = RodState.Suspended;
-
         transform.rotation = Quaternion.Euler(0, 0, 0);
-        transform.position = hingeSnapPoint.position;
-
+        transform.position = snapPoint.position;
         rb.isKinematic = false;
         rb.useGravity = true;
-        rb.linearDamping = 10f;
-        rb.angularDamping = 200f;
         rb.linearVelocity = Vector3.zero;
         rb.angularVelocity = Vector3.zero;
 
-        HingeJoint oldJoint = hingeSnapPoint.GetComponent<HingeJoint>();
+        HingeJoint oldJoint = snapPoint.GetComponent<HingeJoint>();
         if (oldJoint != null) Destroy(oldJoint);
 
-        HingeJoint newJoint = hingeSnapPoint.gameObject.AddComponent<HingeJoint>();
+        HingeJoint newJoint = snapPoint.gameObject.AddComponent<HingeJoint>();
         newJoint.axis = new Vector3(0, 0, 1);
         newJoint.anchor = Vector3.zero;
         newJoint.autoConfigureConnectedAnchor = false;
         newJoint.connectedAnchor = new Vector3(0, 1f, 0);
         newJoint.connectedBody = rb;
 
-        JointLimits limits = new JointLimits();
-        limits.min = -3f;
-        limits.max = 3f;
-        newJoint.limits = limits;
-        newJoint.useLimits = true;
+        if (GameManager.Instance != null && GameManager.Instance.currentStep == 3)
+        {
+            rb.linearDamping = 2;
+            rb.angularDamping = 5;
+            JointLimits limits = new JointLimits();
+            limits.min = -45f;
+            limits.max = 45f;
+            newJoint.limits = limits;
+            newJoint.useLimits = true;
+        }
+        else
+        {
+            rb.linearDamping = 20;
+            rb.angularDamping = 500;
+            JointLimits limits = new JointLimits();
+            limits.min = -3f;
+            limits.max = 3f;
+            newJoint.limits = limits;
+            newJoint.useLimits = true;
+        }
 
-        suspendedRodInScene = this;
+        if (suspendedRodInScene == null || suspendedRodInScene == this)
+            suspendedRodInScene = this;
+        else
+            suspendedRodInScene2 = this;
+
         Debug.Log(gameObject.name + " standa asıldı!");
+
+        if (GameManager.Instance != null && GameManager.Instance.currentStep == 3)
+        {
+            if (myChargeType == "Glass" && GameManager.Instance.step3SubStep == 1)
+            {
+                GameManager.Instance.step3SubStep = 2;
+                GameManager.Instance.taskText.text = "Simdi plastik cubugu ipek kumasla yukleyip asin!";
+                GameManager.Instance.UpdateStep3Access();
+            }
+            else if (myChargeType == "Plastic" && GameManager.Instance.step3SubStep == 2)
+            {
+                GameManager.Instance.step3SubStep = 3;
+                GameManager.Instance.taskText.text = "Ikisinin etkilesimini gozlemleyin!";
+                GameManager.Instance.UpdateStep3Access();
+            }
+        }
     }
-    // Fizik hesaplamaları (Coulomb) Update'de değil, FixedUpdate'de yapılmalıdır.
+
     void FixedUpdate()
     {
-      
+        if (GameManager.Instance == null || GameManager.Instance.currentStep != 3) return;
+        if (currentState != RodState.Suspended) return;
+        if (suspendedRodInScene == null || suspendedRodInScene2 == null) return;
+        ApplyCoulombForce();
     }
 
     private void ApplyCoulombForce()
     {
-        Rigidbody suspendedRb = suspendedRodInScene.GetComponent<Rigidbody>();
-        if (suspendedRb == null) return;
+        DraggableRod otherRod = (suspendedRodInScene == this) ? suspendedRodInScene2 : suspendedRodInScene;
+        if (otherRod == null) return;
 
-        // Masadaki çubuktan, asılı çubuğa doğru olan yönü bul
-        Vector3 directionTowardsTableRod = (transform.position - suspendedRodInScene.transform.position);
-        float distance = directionTowardsTableRod.magnitude;
+        Rigidbody myRb = GetComponent<Rigidbody>();
+        if (myRb == null) return;
 
-        if (distance < 0.1f || distance > 5.0f) return; // Çok uzaksa veya çok yakınsa işlem yapma
+        Vector3 direction = (otherRod.transform.position - transform.position);
+        float distance = direction.magnitude;
 
-        Vector3 normalizedDirection = directionTowardsTableRod.normalized;
+        if (distance < 0.1f || distance > 5.0f) return;
 
-        // Aynı yükler iter (-1), zıt yükler çeker (1)
-        float forceDirection = (myChargeType == suspendedRodInScene.myChargeType) ? -1f : 1f;
-
-        // Gerçekçi fizik formülü: Kuvvet = Çarpan / (Mesafe * Mesafe)
+        Vector3 normalizedDirection = direction.normalized;
+        float forceDirection = (myChargeType == otherRod.myChargeType) ? -1f : 1f;
         float forceMagnitude = coulombForceMultiplier / (distance * distance);
-
         Vector3 forceToApply = normalizedDirection * forceDirection * forceMagnitude;
 
-        // Kuvveti ASILI OLAN çubuğa uygula ki bize doğru gelsin veya bizden kaçsın
-        suspendedRb.AddForce(forceToApply, ForceMode.Force);
+        myRb.AddForce(forceToApply, ForceMode.Force);
     }
 
     public void ChangeToChargedColor()
     {
         if (rend != null) rend.material.color = chargedColor;
+    }
+
+    public Color GetOriginalColor()
+    {
+        return originalColor;
     }
 }
