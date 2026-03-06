@@ -213,6 +213,7 @@ public class UIBuilder : MonoBehaviour
                     inputField.placeholder = ph;
                     inputField.lineType = TMP_InputField.LineType.MultiLineNewline;
                     inputFields[row] = inputField;
+                    inputField.interactable = (row == 0);
                 }
             }
         }
@@ -265,6 +266,7 @@ public class UIBuilder : MonoBehaviour
             reportManager.toggleButtonText = toggleText;
             reportManager.step1Input = inputFields[0];
             reportManager.step1NextButton = nextButton;
+            reportManager.allInputFields = inputFields;
         }
 
         reportPanel.SetActive(false);
