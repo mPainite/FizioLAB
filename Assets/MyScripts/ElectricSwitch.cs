@@ -1,5 +1,5 @@
 using UnityEngine;
-using TMPro; // TextMeshPro kullanmak için gerekli
+using TMPro; // TextMeshPro bileþenlerine eriþmek için þart
 
 public class ElectricSwitch : MonoBehaviour
 {
@@ -11,10 +11,11 @@ public class ElectricSwitch : MonoBehaviour
     [SerializeField] private Quaternion rotationOFF;
 
     [Header("UI Ayarlarý")]
-    [SerializeField] private GameObject powerMessage; // Ekranda görünecek yazý objesi
+    [SerializeField] private TextMeshProUGUI statusText; // GameObject yerine TextMeshProUGUI kullanýyoruz
 
     private void Start()
     {
+        // Baþlangýçta yazýnýn rengini ve rotasyonu ayarla
         UpdateStatus();
     }
 
@@ -34,10 +35,14 @@ public class ElectricSwitch : MonoBehaviour
         // Anahtarýn rotasyonunu güncelle
         transform.localRotation = isPowered ? rotationON : rotationOFF;
 
-        // UI Mesajýný aç veya kapat
-        if (powerMessage != null)
+        // UI Yazýsýnýn rengini deðiþtir
+        if (statusText != null)
         {
-            powerMessage.SetActive(isPowered);
+            // Eðer güç açýksa Yeþil, kapalýysa Beyaz yap
+            statusText.color = isPowered ? Color.green : Color.white;
+            
+            // Alternatif: Yazý içeriðini de deðiþtirmek istersen:
+            // statusText.text = isPowered ? "Güç: AÇIK" : "Güç: KAPALI";
         }
     }
 }
