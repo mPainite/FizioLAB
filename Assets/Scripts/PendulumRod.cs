@@ -38,6 +38,17 @@ public class PendulumRod : MonoBehaviour
         newJoint.connectedBody = rb;
     }
 
+    public void ResetPendulum()
+    {
+        // Eski joint sil
+        HingeJoint joint = hingeSnapPoint.GetComponent<HingeJoint>();
+        if (joint != null) Destroy(joint);
+
+        rb.isKinematic = true;
+        rb.useGravity = false;
+        gameObject.SetActive(false);
+    }
+
     void FixedUpdate()
     {
        

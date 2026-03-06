@@ -80,23 +80,40 @@ public class DraggableRod : MonoBehaviour
     {
         if (currentState != RodState.Dragging) return;
 
+        // Yüklü mü kontrol et
+        DraggableCloth[] cloths = FindObjectsByType<DraggableCloth>(FindObjectsSortMode.None);
+        bool isCharged = false;
+        foreach (var cloth in cloths)
+        {
+            if (cloth.isCharged) isCharged = true;
+        }
+
+        if (!isCharged)
+        {
+            if (GameManager.Instance != null)
+                GameManager.Instance.taskText.text = "⚠️ Önce çubuğu kumaşla yükleyin!";
+            ResetToTable();
+            return;
+        }
+
         if (hingeSnapPoint != null)
         {
-            // YENİ: Yüksekliği (Y eksenini) tamamen görmezden geliyoruz.
-            // Sadece X ve Z (Yatay) eksenindeki hizaya bakıyoruz!
             Vector2 rodFlatPos = new Vector2(transform.position.x, transform.position.z);
             Vector2 hingeFlatPos = new Vector2(hingeSnapPoint.position.x, hingeSnapPoint.position.z);
-
             float distance = Vector2.Distance(rodFlatPos, hingeFlatPos);
 
             if (distance <= snapThreshold)
             {
                 SnapToHinge();
-                return; // Tutunduysa işlemi bitir
+                return;
             }
         }
 
-        // Eğer ipin hizasında değilse, masadaki ilk haline geri dön
+        ResetToTable();
+    }
+
+    public void ResetToTablePublic()
+    {
         ResetToTable();
     }
 
