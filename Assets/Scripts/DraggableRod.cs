@@ -47,14 +47,14 @@ public class DraggableRod : MonoBehaviour
         if (rend != null) rend.material.color = originalColor;
     }
 
-    private Transform GetActiveSnapPoint()
-    {
-        if (GameManager.Instance != null && GameManager.Instance.currentStep == 4)
-            return hingeSnapPointStep4 != null ? hingeSnapPointStep4 : hingeSnapPoint;
-        if (GameManager.Instance != null && GameManager.Instance.currentStep == 3)
-            return hingeSnapPointStep3 != null ? hingeSnapPointStep3 : hingeSnapPoint;
-        return hingeSnapPoint;
-    }
+   private Transform GetActiveSnapPoint()
+{
+    if (GameManager.Instance != null && GameManager.Instance.currentStep == 4)
+        return hingeSnapPointStep4 != null ? hingeSnapPointStep4 : hingeSnapPoint;
+    if (GameManager.Instance != null && GameManager.Instance.currentStep == 3)
+        return hingeSnapPointStep3 != null ? hingeSnapPointStep3 : hingeSnapPoint;
+    return hingeSnapPoint;
+}
 
     void OnMouseDown()
     {
