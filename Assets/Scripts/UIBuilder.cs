@@ -48,7 +48,7 @@ public class UIBuilder : MonoBehaviour
         panelRect.anchorMin = new Vector2(1, 1);
         panelRect.anchorMax = new Vector2(1, 1);
         panelRect.pivot = new Vector2(1, 1);
-        panelRect.sizeDelta = new Vector2(520, 600);
+        panelRect.sizeDelta = new Vector2(520, 700);
         panelRect.anchoredPosition = new Vector2(-20, -80);
         Image panelImg = reportPanel.AddComponent<Image>();
         panelImg.color = new Color(0.04f, 0.07f, 0.14f, 0.98f);
@@ -126,16 +126,17 @@ public class UIBuilder : MonoBehaviour
             hText.alignment = TextAlignmentOptions.Center;
         }
 
-        // Tablo satırları
+        // Tablo satırları - 4 satır
         string[,] rows = {
             { "Cam Cubuk\n(Yuklu)", "Cam Cubuk\n(Yuksuz)", "" },
             { "Plastik Cubuk\n(Yuklu)", "Plastik Cubuk\n(Yuksuz)", "" },
-            { "Cam Cubuk\n(Yuklu)", "Plastik Cubuk\n(Yuklu)", "" }
+            { "Cam Cubuk\n(Yuklu)", "Plastik Cubuk\n(Yuklu)", "" },
+            { "Cam Cubuk\n(Yuklu)", "Cam Cubuk\n(Yuklu)", "" }
         };
 
-        TMP_InputField[] inputFields = new TMP_InputField[3];
+        TMP_InputField[] inputFields = new TMP_InputField[4];
 
-        for (int row = 0; row < 3; row++)
+        for (int row = 0; row < 4; row++)
         {
             float rowY = -148f - (row * 95f);
             Color rowColor = row % 2 == 0
@@ -224,7 +225,7 @@ public class UIBuilder : MonoBehaviour
         sir.sizeDelta = new Vector2(-40, 30);
         sir.anchoredPosition = new Vector2(0, 110);
         TextMeshProUGUI stepText = stepObj.AddComponent<TextMeshProUGUI>();
-        stepText.text = "Deney 1    Deney 2    Deney 3";
+        stepText.text = "Deney 1    Deney 2    Deney 3    Deney 4";
         stepText.fontSize = 13;
         stepText.color = new Color(0.4f, 0.85f, 1f, 0.8f);
         stepText.alignment = TextAlignmentOptions.Center;
@@ -241,7 +242,6 @@ public class UIBuilder : MonoBehaviour
         Image nbImg = nextBtn.AddComponent<Image>();
         nbImg.color = new Color(0.15f, 0.4f, 0.8f, 1f);
         Button nextButton = nextBtn.AddComponent<Button>();
-
         GameObject nbTextObj = new GameObject("Text");
         nbTextObj.transform.SetParent(nextBtn.transform, false);
         RectTransform nbtr = nbTextObj.AddComponent<RectTransform>();
@@ -266,7 +266,6 @@ public class UIBuilder : MonoBehaviour
         Image nb2Img = next2Btn.AddComponent<Image>();
         nb2Img.color = new Color(0.15f, 0.4f, 0.8f, 1f);
         Button next2Button = next2Btn.AddComponent<Button>();
-
         GameObject nb2TextObj = new GameObject("Text");
         nb2TextObj.transform.SetParent(next2Btn.transform, false);
         RectTransform nb2tr = nb2TextObj.AddComponent<RectTransform>();
@@ -278,9 +277,32 @@ public class UIBuilder : MonoBehaviour
         nb2Text.fontStyle = FontStyles.Bold;
         nb2Text.color = Color.white;
         nb2Text.alignment = TextAlignmentOptions.Center;
-
-        // Adım 2 butonu başlangıçta gizli
         next2Btn.SetActive(false);
+
+        // === ADIM 3 BUTONU ===
+        GameObject next3Btn = new GameObject("Step3NextButton");
+        next3Btn.transform.SetParent(reportPanel.transform, false);
+        RectTransform nb3r = next3Btn.AddComponent<RectTransform>();
+        nb3r.anchorMin = new Vector2(0, 0);
+        nb3r.anchorMax = new Vector2(1, 0);
+        nb3r.pivot = new Vector2(0.5f, 0);
+        nb3r.sizeDelta = new Vector2(-40, 50);
+        nb3r.anchoredPosition = new Vector2(0, 50);
+        Image nb3Img = next3Btn.AddComponent<Image>();
+        nb3Img.color = new Color(0.15f, 0.4f, 0.8f, 1f);
+        Button next3Button = next3Btn.AddComponent<Button>();
+        GameObject nb3TextObj = new GameObject("Text");
+        nb3TextObj.transform.SetParent(next3Btn.transform, false);
+        RectTransform nb3tr = nb3TextObj.AddComponent<RectTransform>();
+        nb3tr.anchorMin = Vector2.zero; nb3tr.anchorMax = Vector2.one;
+        nb3tr.offsetMin = Vector2.zero; nb3tr.offsetMax = Vector2.zero;
+        TextMeshProUGUI nb3Text = nb3TextObj.AddComponent<TextMeshProUGUI>();
+        nb3Text.text = "Adim 4'e Gec  ->";
+        nb3Text.fontSize = 16;
+        nb3Text.fontStyle = FontStyles.Bold;
+        nb3Text.color = Color.white;
+        nb3Text.alignment = TextAlignmentOptions.Center;
+        next3Btn.SetActive(false);
 
         // === REPORT MANAGER BAĞLANTILARI ===
         if (reportManager != null)
@@ -291,6 +313,7 @@ public class UIBuilder : MonoBehaviour
             reportManager.step1Input = inputFields[0];
             reportManager.step1NextButton = nextButton;
             reportManager.step2NextButton = next2Button;
+            reportManager.step3NextButton = next3Button;
             reportManager.allInputFields = inputFields;
         }
 

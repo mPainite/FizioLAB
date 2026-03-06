@@ -28,6 +28,9 @@ public class GameManager : MonoBehaviour
     [Header("Adım 3 Alt Adımları")]
     public int step3SubStep = 1;
 
+    [Header("Adım 4 Objeleri")]
+    public DraggableRod glassRod2;
+
     private void Awake()
     {
         if (Instance == null) Instance = this;
@@ -56,6 +59,7 @@ public class GameManager : MonoBehaviour
             if (pendulumRod != null) pendulumRod.gameObject.SetActive(false);
             if (plasticPendulumRod != null) plasticPendulumRod.gameObject.SetActive(true);
             if (silkCloth != null) silkCloth.ResetCloth();
+            if (glassRod2 != null) glassRod2.gameObject.SetActive(false);
         }
 
         if (step == 3)
@@ -67,19 +71,28 @@ public class GameManager : MonoBehaviour
             if (pendulumRod != null) pendulumRod.gameObject.SetActive(false);
             if (silkCloth != null) silkCloth.ResetCloth();
             if (woolCloth != null) woolCloth.ResetCloth();
+            if (glassRod2 != null) glassRod2.gameObject.SetActive(false);
+        }
+        if (step == 4)
+        {
+            step3SubStep = 1;
+            if (glassRod != null) glassRod.ResetToTablePublic();
+            if (glassRod2 != null) glassRod2.gameObject.SetActive(true);
+            if (plasticRod != null) plasticRod.gameObject.SetActive(false);
+            if (plasticPendulumRod != null) plasticPendulumRod.gameObject.SetActive(false);
+            if (pendulumRod != null) pendulumRod.gameObject.SetActive(false);
+            if (silkCloth != null) silkCloth.ResetCloth();
+            if (woolCloth != null) woolCloth.ResetCloth();
         }
     }
 
     public void UpdateStep3Access()
     {
-        if (currentStep == 3)
+        if (currentStep == 3 || currentStep == 4) UpdateObjectAccess();
+        if (step3SubStep == 2 && plasticRod != null)
         {
-            UpdateObjectAccess();
-            if (step3SubStep == 2 && plasticRod != null)
-            {
-                Renderer r = plasticRod.GetComponent<Renderer>();
-                if (r != null) r.material.color = plasticRod.GetOriginalColor();
-            }
+            Renderer r = plasticRod.GetComponent<Renderer>();
+            if (r != null) r.material.color = plasticRod.GetOriginalColor();
         }
     }
 
@@ -96,6 +109,10 @@ public class GameManager : MonoBehaviour
             case 3:
                 taskText.text = "Adım 3: Önce cam çubuğu yünlü kumaşla yükleyip asın!";
                 break;
+            case 4:
+                taskText.text = "Adım 4: Her iki çubuğu ipek kumaşla yükleyip asın, etkileşimi gözlemleyin!";
+                break;
+
         }
     }
 
@@ -134,6 +151,29 @@ public class GameManager : MonoBehaviour
                 {
                     SetClothActive(woolCloth, false);
                     SetClothActive(silkCloth, false);
+                    SetRodDraggable(glassRod, false);
+                    SetRodDraggable(plasticRod, false);
+                }
+                break;
+            case 4:
+                if (step3SubStep == 1)
+                {
+                    SetClothActive(silkCloth, true);
+                    SetClothActive(woolCloth, false);
+                    SetRodDraggable(glassRod, true);
+                    SetRodDraggable(plasticRod, false);
+                }
+                else if (step3SubStep == 2)
+                {
+                    SetClothActive(silkCloth, true);
+                    SetClothActive(woolCloth, false);
+                    SetRodDraggable(glassRod, false);
+                    SetRodDraggable(plasticRod, true);
+                }
+                else
+                {
+                    SetClothActive(silkCloth, false);
+                    SetClothActive(woolCloth, false);
                     SetRodDraggable(glassRod, false);
                     SetRodDraggable(plasticRod, false);
                 }

@@ -9,6 +9,7 @@ public class DraggableRod : MonoBehaviour
     [Header("Asılma & Stand Ayarları")]
     public Transform hingeSnapPoint;
     public Transform hingeSnapPointStep3;
+    public Transform hingeSnapPointStep4;
     public float snapThreshold = 0.5f;
     public float dragHeight = 1.5f;
 
@@ -48,6 +49,8 @@ public class DraggableRod : MonoBehaviour
 
     private Transform GetActiveSnapPoint()
     {
+        if (GameManager.Instance != null && GameManager.Instance.currentStep == 4)
+            return hingeSnapPointStep4 != null ? hingeSnapPointStep4 : hingeSnapPoint;
         if (GameManager.Instance != null && GameManager.Instance.currentStep == 3)
             return hingeSnapPointStep3 != null ? hingeSnapPointStep3 : hingeSnapPoint;
         return hingeSnapPoint;
@@ -102,6 +105,24 @@ public class DraggableRod : MonoBehaviour
                         return;
                     }
                     if (subStep == 1 && myChargeType == "Glass" && cloth.gameObject.name == "WoolCloth" && cloth.isCharged) correctCharged = true;
+                    if (subStep == 2 && myChargeType == "Plastic" && cloth.gameObject.name == "SilkCloth" && cloth.isCharged) correctCharged = true;
+                }
+                if (step == 4)
+                {
+                    int subStep = GameManager.Instance.step3SubStep;
+                    if (subStep == 1 && myChargeType == "Plastic")
+                    {
+                        GameManager.Instance.taskText.text = "Önce cam çubuğu ipek kumaşla yükleyip asın!";
+                        ResetToTable();
+                        return;
+                    }
+                    if (subStep == 2 && myChargeType == "Glass")
+                    {
+                        GameManager.Instance.taskText.text = "Şimdi plastik çubuğu ipek kumaşla yükleyip asın!";
+                        ResetToTable();
+                        return;
+                    }
+                    if (subStep == 1 && myChargeType == "Glass" && cloth.gameObject.name == "SilkCloth" && cloth.isCharged) correctCharged = true;
                     if (subStep == 2 && myChargeType == "Plastic" && cloth.gameObject.name == "SilkCloth" && cloth.isCharged) correctCharged = true;
                 }
             }
@@ -188,10 +209,10 @@ public class DraggableRod : MonoBehaviour
         newJoint.connectedAnchor = new Vector3(0, 1f, 0);
         newJoint.connectedBody = rb;
 
-        if (GameManager.Instance != null && GameManager.Instance.currentStep == 3)
+        if (GameManager.Instance != null && (GameManager.Instance.currentStep == 3 || GameManager.Instance.currentStep == 4))
         {
-            rb.linearDamping = 2;
-            rb.angularDamping = 5;
+            rb.linearDamping = 5;
+            rb.angularDamping = 20;
             JointLimits limits = new JointLimits();
             limits.min = -45f;
             limits.max = 45f;
@@ -216,7 +237,7 @@ public class DraggableRod : MonoBehaviour
 
         Debug.Log(gameObject.name + " standa asıldı!");
 
-        if (GameManager.Instance != null && GameManager.Instance.currentStep == 3)
+        if (GameManager.Instance != null && (GameManager.Instance.currentStep == 3 || GameManager.Instance.currentStep == 4))
         {
             if (myChargeType == "Glass" && GameManager.Instance.step3SubStep == 1)
             {
@@ -235,7 +256,9 @@ public class DraggableRod : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (GameManager.Instance == null || GameManager.Instance.currentStep != 3) return;
+        if (GameManager.Instance == null) return;
+        int step = GameManager.Instance.currentStep;
+        if (step != 3 && step != 4) return;
         if (currentState != RodState.Suspended) return;
         if (suspendedRodInScene == null || suspendedRodInScene2 == null) return;
         ApplyCoulombForce();
@@ -252,7 +275,7 @@ public class DraggableRod : MonoBehaviour
         Vector3 direction = (otherRod.transform.position - transform.position);
         float distance = direction.magnitude;
 
-        if (distance < 0.1f || distance > 5.0f) return;
+        if (distance < 0.6f || distance > 5.0f) return;
 
         Vector3 normalizedDirection = direction.normalized;
         float forceDirection = (myChargeType == otherRod.myChargeType) ? -1f : 1f;
