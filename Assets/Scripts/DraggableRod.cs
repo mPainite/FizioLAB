@@ -262,6 +262,21 @@ public class DraggableRod : MonoBehaviour
         HideChargeIndicator();
         if (rend != null) rend.material.color = originalColor;
 
+        if (GameManager.Instance != null)
+        {
+            int s = GameManager.Instance.currentStep;
+            int sub = GameManager.Instance.step3SubStep;
+            if (s == 3 || s == 4)
+            {
+                if (sub == 1 && GameManager.Instance.silkCloth != null)
+                    GameManager.Instance.silkCloth.ResetCloth();
+                else if (sub == 2 && GameManager.Instance.woolCloth != null && s == 3)
+                    GameManager.Instance.woolCloth.ResetCloth();
+                else if (sub == 2 && GameManager.Instance.silkCloth != null && s == 4)
+                    GameManager.Instance.silkCloth.ResetCloth();
+            }
+        }
+
         if (hingeSnapPoint != null)
         {
             HingeJoint joint = hingeSnapPoint.GetComponent<HingeJoint>();
@@ -306,7 +321,12 @@ public class DraggableRod : MonoBehaviour
 
         HingeJoint oldJoint = snapPoint.GetComponent<HingeJoint>();
         if (oldJoint != null) Destroy(oldJoint);
-
+        if (GuideManager.Instance != null)
+        {
+            int s = GameManager.Instance.currentStep;
+            if (s == 1 || s == 2)
+                GuideManager.Instance.CompleteTask(s, 2); // standa as
+        }
         if (GuideManager.Instance != null)
         {
             int s = GameManager.Instance.currentStep;
