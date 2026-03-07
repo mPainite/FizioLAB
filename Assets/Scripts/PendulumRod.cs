@@ -4,15 +4,14 @@ using UnityEngine;
 public class PendulumRod : MonoBehaviour
 {
     [Header("Asýlma Ayarlarý")]
-    public Transform hingeSnapPoint;     // 2. standýn Hinge_SnapPoint2'si
-    public float rodHalfLength = 1f;     // Çubuðun yarý boyu
+    public Transform hingeSnapPoint;
+    public float rodHalfLength = 1f;
 
     [Header("Yük Ayarlarý")]
-    public string myChargeType = "None"; // "None", "Glass", "Plastic"
+    public string myChargeType = "None";
     public float coulombForceMultiplier = 3f;
 
     private Rigidbody rb;
-    private HingeJoint joint;
 
     void Start()
     {
@@ -20,18 +19,19 @@ public class PendulumRod : MonoBehaviour
         AutoHang();
     }
 
-    private void AutoHang()
+    public void AutoHang()
     {
+        gameObject.layer = LayerMask.NameToLayer("Ignore Raycast");
+
         transform.rotation = Quaternion.Euler(0, 0, 0);
         transform.position = hingeSnapPoint.position + new Vector3(0, -1f, 0);
-
         rb.isKinematic = false;
         rb.useGravity = true;
         rb.linearDamping = 2f;
-        rb.angularDamping = 8f; // Düþük yap, hareket etsin
+        rb.angularDamping = 8f;
 
         HingeJoint newJoint = hingeSnapPoint.gameObject.AddComponent<HingeJoint>();
-        newJoint.axis = new Vector3(0, 0, 1); // Z ekseni — ileri geri
+        newJoint.axis = new Vector3(0, 0, 1);
         newJoint.anchor = Vector3.zero;
         newJoint.autoConfigureConnectedAnchor = false;
         newJoint.connectedAnchor = new Vector3(0, 1f, 0);
@@ -40,10 +40,8 @@ public class PendulumRod : MonoBehaviour
 
     public void ResetPendulum()
     {
-        // Eski joint sil
-        HingeJoint joint = hingeSnapPoint.GetComponent<HingeJoint>();
-        if (joint != null) Destroy(joint);
-
+        HingeJoint j = hingeSnapPoint.GetComponent<HingeJoint>();
+        if (j != null) Destroy(j);
         rb.isKinematic = true;
         rb.useGravity = false;
         gameObject.SetActive(false);
@@ -51,38 +49,31 @@ public class PendulumRod : MonoBehaviour
 
     void FixedUpdate()
     {
-       
+        if (GameManager.Instance == null) return;
+        int step = GameManager.Instance.currentStep;
+        if (step != 1 && step != 2) return;
         ApplyCoulombForce();
     }
 
     private void ApplyCoulombForce()
     {
         DraggableRod suspendedRod = DraggableRod.suspendedRodInScene;
-        if (suspendedRod == null) return;
+        if (suspendedRod == null || !suspendedRod.isCharged) return;
 
         Vector3 direction = suspendedRod.transform.position - transform.position;
         float distance = direction.magnitude;
-
         if (distance < 0.1f || distance > 5f) return;
 
         float forceDirection;
-
         if (myChargeType == "None")
-        {
-            forceDirection = 0.3f; // yüksüz: hafif çekilir
-        }
+            forceDirection = 0.3f;
         else if (myChargeType == suspendedRod.myChargeType)
-        {
-            forceDirection = -1f; // ayný yük: iter
-        }
+            forceDirection = -1f;
         else
-        {
-            forceDirection = 1f; // zýt yük: çeker
-        }
+            forceDirection = 1f;
 
         float forceMagnitude = coulombForceMultiplier / (distance * distance);
         Vector3 force = direction.normalized * forceDirection * forceMagnitude;
-
         rb.AddForce(force, ForceMode.Force);
     }
 }

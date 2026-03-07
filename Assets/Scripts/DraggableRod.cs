@@ -1,4 +1,5 @@
 using UnityEngine;
+using TMPro;
 
 [RequireComponent(typeof(Rigidbody))]
 public class DraggableRod : MonoBehaviour
@@ -28,11 +29,16 @@ public class DraggableRod : MonoBehaviour
     [Header("Yük Durumu")]
     public bool isCharged = false;
 
+    [Header("Yük Göstergesi")]
+    public Vector3 chargeIndicatorOffset = new Vector3(0, 0.5f, 0);
+
     private Rigidbody rb;
     private Vector3 startPos;
     private Quaternion startRot;
     private Camera mainCamera;
     private float dragDepth;
+    private GameObject chargeIndicator;
+    private TextMeshPro chargeText;
 
     void Awake()
     {
@@ -50,6 +56,8 @@ public class DraggableRod : MonoBehaviour
                     originalColor = forcedOriginalColor;
             }
         }
+        CreateChargeIndicator();
+        Debug.Log(gameObject.name + " ChargeIndicator oluşturuldu: " + (chargeIndicator != null));
     }
 
     void Start()
@@ -57,6 +65,50 @@ public class DraggableRod : MonoBehaviour
         if (mainCamera == null) mainCamera = Camera.main;
         ResetToTable();
         if (rend != null) rend.material.color = originalColor;
+    }
+
+    private void CreateChargeIndicator()
+    {
+        chargeIndicator = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+        chargeIndicator.transform.SetParent(transform);
+        chargeIndicator.transform.localPosition = chargeIndicatorOffset;
+        chargeIndicator.transform.localScale = new Vector3(0.15f, 0.15f, 0.15f);
+
+        // Collider'ı kaldır
+        Collider col = chargeIndicator.GetComponent<Collider>();
+        if (col != null) Destroy(col);
+
+        chargeIndicator.SetActive(false);
+    }
+
+    void LateUpdate()
+    {
+        if (chargeIndicator != null && chargeIndicator.activeSelf && mainCamera != null)
+        {
+            chargeIndicator.transform.rotation = Quaternion.LookRotation(
+                chargeIndicator.transform.position - mainCamera.transform.position
+            );
+        }
+    }
+
+    private void ShowChargeIndicator()
+    {
+        if (chargeIndicator == null) return;
+        chargeIndicator.SetActive(true);
+        Renderer r = chargeIndicator.GetComponent<Renderer>();
+        if (r != null)
+        {
+            if (myChargeType == "Glass")
+                r.material.color = new Color(1f, 0.4f, 0.1f); // turuncu = pozitif
+            else
+                r.material.color = new Color(0.2f, 0.4f, 1f); // mavi = negatif
+        }
+    }
+
+    private void HideChargeIndicator()
+    {
+        if (chargeIndicator != null)
+            chargeIndicator.SetActive(false);
     }
 
     private Transform GetActiveSnapPoint()
@@ -70,8 +122,33 @@ public class DraggableRod : MonoBehaviour
 
     void OnMouseDown()
     {
-        if (!enabled) return;
-        if (currentState == RodState.Suspended) return;
+        if (!enabled)
+        {
+            if (ObjectInfoManager.Instance != null)
+                ObjectInfoManager.Instance.ShowRodInfo(this);
+            return;
+        }
+
+        // Adım bazlı kilit
+        if (GameManager.Instance != null)
+        {
+            int step = GameManager.Instance.currentStep;
+            int sub = GameManager.Instance.step3SubStep;
+            if (step == 2 && myChargeType == "Glass") return;
+            if (step == 3 && sub == 1 && myChargeType == "Plastic") return;
+            if (step == 3 && sub == 2 && myChargeType == "Glass") return;
+            if (step == 4 && sub == 1 && gameObject.name == "GlassRod2_Drag") return;
+            if (step == 4 && sub == 2 && gameObject.name == "GlassRod_Drag") return;
+        }
+
+        if (currentState == RodState.Suspended)
+        {
+            rb.linearVelocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+            if (ObjectInfoManager.Instance != null)
+                ObjectInfoManager.Instance.ShowRodInfo(this);
+            return;
+        }
         currentState = RodState.Dragging;
         rb.isKinematic = true;
         rb.useGravity = false;
@@ -182,6 +259,7 @@ public class DraggableRod : MonoBehaviour
     {
         currentState = RodState.OnTable;
         isCharged = false;
+        HideChargeIndicator();
         if (rend != null) rend.material.color = originalColor;
 
         if (hingeSnapPoint != null)
@@ -228,6 +306,13 @@ public class DraggableRod : MonoBehaviour
 
         HingeJoint oldJoint = snapPoint.GetComponent<HingeJoint>();
         if (oldJoint != null) Destroy(oldJoint);
+
+        if (GuideManager.Instance != null)
+        {
+            int s = GameManager.Instance.currentStep;
+            if (s == 1 || s == 2)
+                GuideManager.Instance.CompleteTask(s, 2); // standa as tiki
+        }
 
         HingeJoint newJoint = snapPoint.gameObject.AddComponent<HingeJoint>();
         newJoint.axis = new Vector3(0, 0, 1);
@@ -284,6 +369,12 @@ public class DraggableRod : MonoBehaviour
                 GameManager.Instance.UpdateStep3Access();
             }
         }
+
+        if (GameManager.Instance.currentStep == 1 || GameManager.Instance.currentStep == 2)
+            GameManager.Instance.taskText.text = "Çubuk standa asıldı! Yükünü incelemek için üzerine tıklayın.";
+
+        if (GameManager.Instance != null && GuideManager.Instance != null)
+            GuideManager.Instance.CompleteTask(GameManager.Instance.currentStep, 2);
     }
 
     void FixedUpdate()
@@ -318,6 +409,7 @@ public class DraggableRod : MonoBehaviour
     {
         isCharged = true;
         if (rend != null) rend.material.color = chargedColor;
+        ShowChargeIndicator();
     }
 
     public Color GetOriginalColor()
