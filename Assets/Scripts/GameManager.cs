@@ -45,27 +45,38 @@ public class GameManager : MonoBehaviour
     void DelayedStart()
     {
         SetStep(1);
+        if (GuideManager.Instance != null)
+            GuideManager.Instance.UpdateStep(1);
     }
-
     public void SetStep(int step)
     {
         currentStep = step;
         step3SubStep = 1;
         UpdateTaskText();
         UpdateObjectAccess();
+        if (GuideManager.Instance != null)
+            GuideManager.Instance.UpdateStep(step);
 
         if (step == 2)
         {
             if (glassRod != null) glassRod.ResetToTablePublic();
             if (pendulumRod != null) pendulumRod.gameObject.SetActive(false);
-            if (plasticPendulumRod != null) plasticPendulumRod.gameObject.SetActive(true);
+            if (plasticPendulumRod != null)
+            {
+                plasticPendulumRod.gameObject.SetActive(true);
+                plasticPendulumRod.AutoHang(); // ← ekle
+            }
             if (silkCloth != null) silkCloth.ResetCloth();
         }
 
         if (step == 3)
         {
+            if (glassRod != null)
+            {
+                glassRod.gameObject.SetActive(true);
+                glassRod.ResetToTablePublic();
+            }
             if (plasticRod != null) plasticRod.ResetToTablePublic();
-            if (glassRod != null) glassRod.ResetToTablePublic();
             if (plasticPendulumRod != null) plasticPendulumRod.gameObject.SetActive(false);
             if (pendulumRod != null) pendulumRod.gameObject.SetActive(false);
             if (silkCloth != null) silkCloth.ResetCloth();
@@ -74,12 +85,19 @@ public class GameManager : MonoBehaviour
 
         if (step == 4)
         {
-            // Önce tüm suspended referansları temizle
             DraggableRod.suspendedRodInScene = null;
             DraggableRod.suspendedRodInScene2 = null;
 
-            if (glassRod != null) glassRod.ResetToTablePublic();
-            if (plasticRod != null) plasticRod.ResetToTablePublic(); // bunu ekle
+            if (glassRod != null)
+            {
+                glassRod.gameObject.SetActive(true);
+                glassRod.ResetToTablePublic();
+            }
+            if (plasticRod != null)
+            {
+                plasticRod.ResetToTablePublic();
+                plasticRod.gameObject.SetActive(false);
+            }
             if (glassRod2 != null)
             {
                 glassRod2.gameObject.SetActive(true);
@@ -87,7 +105,6 @@ public class GameManager : MonoBehaviour
                 Renderer r = glassRod2.GetComponent<Renderer>();
                 if (r != null) r.material.color = glassRod2.GetOriginalColor();
             }
-            if (plasticRod != null) plasticRod.gameObject.SetActive(false);
             if (plasticPendulumRod != null) plasticPendulumRod.gameObject.SetActive(false);
             if (pendulumRod != null) pendulumRod.gameObject.SetActive(false);
             if (silkCloth != null) silkCloth.ResetCloth();
@@ -100,6 +117,12 @@ public class GameManager : MonoBehaviour
         if (rod == null) return;
         if (rod.currentState == DraggableRod.RodState.Suspended) return;
         rod.enabled = active;
+
+        // Tüm collider'ları al
+        Collider[] cols = rod.GetComponentsInChildren<Collider>();
+        foreach (Collider col in cols)
+            col.enabled = active;
+
         Rigidbody rb = rod.GetComponent<Rigidbody>();
         if (rb != null)
         {

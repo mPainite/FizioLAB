@@ -126,7 +126,6 @@ public class UIBuilder : MonoBehaviour
             hText.alignment = TextAlignmentOptions.Center;
         }
 
-        // Tablo satırları - 4 satır
         string[,] rows = {
             { "Cam Cubuk\n(Yuklu)", "Cam Cubuk\n(Yuksuz)", "" },
             { "Plastik Cubuk\n(Yuklu)", "Plastik Cubuk\n(Yuksuz)", "" },
@@ -317,6 +316,175 @@ public class UIBuilder : MonoBehaviour
             reportManager.allInputFields = inputFields;
         }
 
+        // === BİLGİ PANELİ ===
+        GameObject infoPanel = new GameObject("InfoPanel");
+        infoPanel.transform.SetParent(canvas.transform, false);
+        RectTransform infoRect = infoPanel.AddComponent<RectTransform>();
+        infoRect.anchorMin = new Vector2(0, 0);
+        infoRect.anchorMax = new Vector2(0, 0);
+        infoRect.pivot = new Vector2(0, 0);
+        infoRect.sizeDelta = new Vector2(280, 100);
+        infoRect.anchoredPosition = new Vector2(20, 20);
+        Image infoImg = infoPanel.AddComponent<Image>();
+        infoImg.color = new Color(0.04f, 0.07f, 0.14f, 0.95f);
+
+        GameObject infoBar = new GameObject("InfoBar");
+        infoBar.transform.SetParent(infoPanel.transform, false);
+        RectTransform infoBarRect = infoBar.AddComponent<RectTransform>();
+        infoBarRect.anchorMin = new Vector2(0, 0);
+        infoBarRect.anchorMax = new Vector2(0, 1);
+        infoBarRect.pivot = new Vector2(0, 0.5f);
+        infoBarRect.sizeDelta = new Vector2(4, 0);
+        infoBarRect.anchoredPosition = Vector2.zero;
+        Image infoBarImg = infoBar.AddComponent<Image>();
+        infoBarImg.color = new Color(0.3f, 0.75f, 1f);
+
+        GameObject infoTitleObj = new GameObject("InfoTitle");
+        infoTitleObj.transform.SetParent(infoPanel.transform, false);
+        RectTransform infoTitleRect = infoTitleObj.AddComponent<RectTransform>();
+        infoTitleRect.anchorMin = new Vector2(0, 1);
+        infoTitleRect.anchorMax = new Vector2(1, 1);
+        infoTitleRect.pivot = new Vector2(0.5f, 1);
+        infoTitleRect.sizeDelta = new Vector2(-20, 35);
+        infoTitleRect.anchoredPosition = new Vector2(5, -8);
+        TextMeshProUGUI infoTitle = infoTitleObj.AddComponent<TextMeshProUGUI>();
+        infoTitle.text = "";
+        infoTitle.fontSize = 14;
+        infoTitle.fontStyle = FontStyles.Bold;
+        infoTitle.color = new Color(0.4f, 0.85f, 1f);
+        infoTitle.alignment = TextAlignmentOptions.Left;
+
+        GameObject infoDescObj = new GameObject("InfoDesc");
+        infoDescObj.transform.SetParent(infoPanel.transform, false);
+        RectTransform infoDescRect = infoDescObj.AddComponent<RectTransform>();
+        infoDescRect.anchorMin = new Vector2(0, 0);
+        infoDescRect.anchorMax = new Vector2(1, 1);
+        infoDescRect.pivot = new Vector2(0.5f, 0.5f);
+        infoDescRect.sizeDelta = new Vector2(-20, -45);
+        infoDescRect.anchoredPosition = new Vector2(5, -15);
+        TextMeshProUGUI infoDesc = infoDescObj.AddComponent<TextMeshProUGUI>();
+        infoDesc.text = "";
+        infoDesc.fontSize = 12;
+        infoDesc.color = Color.white;
+        infoDesc.alignment = TextAlignmentOptions.Left;
+
+        ObjectInfoManager infoManager = gameObject.AddComponent<ObjectInfoManager>();
+        infoManager.SetupPanel(infoPanel, infoTitle, infoDesc);
+
+        // === REHBER BUTONU — Rapor butonunun hemen soluna ===
+        GameObject guideBtn = new GameObject("GuideButton");
+        guideBtn.transform.SetParent(canvas.transform, false);
+        RectTransform guideBtnRect = guideBtn.AddComponent<RectTransform>();
+        guideBtnRect.anchorMin = new Vector2(1, 1);
+        guideBtnRect.anchorMax = new Vector2(1, 1);
+        guideBtnRect.pivot = new Vector2(1, 1);
+        guideBtnRect.sizeDelta = new Vector2(140, 48);
+        guideBtnRect.anchoredPosition = new Vector2(-210, -20);
+        Image guideBtnImg = guideBtn.AddComponent<Image>();
+        guideBtnImg.color = new Color(0.05f, 0.08f, 0.18f, 0.95f);
+        Button guideBtnComp = guideBtn.AddComponent<Button>();
+        GameObject guideBtnTextObj = new GameObject("Text");
+        guideBtnTextObj.transform.SetParent(guideBtn.transform, false);
+        RectTransform guideBtnTr = guideBtnTextObj.AddComponent<RectTransform>();
+        guideBtnTr.anchorMin = Vector2.zero; guideBtnTr.anchorMax = Vector2.one;
+        guideBtnTr.offsetMin = Vector2.zero; guideBtnTr.offsetMax = Vector2.zero;
+        TextMeshProUGUI guideBtnText = guideBtnTextObj.AddComponent<TextMeshProUGUI>();
+        guideBtnText.text = "📖 Rehber";
+        guideBtnText.fontSize = 15;
+        guideBtnText.fontStyle = FontStyles.Bold;
+        guideBtnText.color = new Color(0.4f, 0.85f, 1f);
+        guideBtnText.alignment = TextAlignmentOptions.Center;
+
+        // === REHBER PANELİ ===
+        GameObject guidePanel = new GameObject("GuidePanel");
+        guidePanel.transform.SetParent(canvas.transform, false);
+        RectTransform guidePanelRect = guidePanel.AddComponent<RectTransform>();
+        guidePanelRect.anchorMin = new Vector2(1, 1);
+        guidePanelRect.anchorMax = new Vector2(1, 1);
+        guidePanelRect.pivot = new Vector2(1, 1);
+        guidePanelRect.sizeDelta = new Vector2(340, 480);
+        guidePanelRect.anchoredPosition = new Vector2(-210, -80);
+        Image guidePanelImg = guidePanel.AddComponent<Image>();
+        guidePanelImg.color = new Color(0.04f, 0.07f, 0.14f, 0.98f);
+
+        GameObject guideBar = new GameObject("GuideBar");
+        guideBar.transform.SetParent(guidePanel.transform, false);
+        RectTransform guideBarRect = guideBar.AddComponent<RectTransform>();
+        guideBarRect.anchorMin = new Vector2(0, 0);
+        guideBarRect.anchorMax = new Vector2(0, 1);
+        guideBarRect.pivot = new Vector2(0, 0.5f);
+        guideBarRect.sizeDelta = new Vector2(4, 0);
+        guideBarRect.anchoredPosition = Vector2.zero;
+        Image guideBarImg = guideBar.AddComponent<Image>();
+        guideBarImg.color = new Color(0.3f, 0.75f, 1f);
+
+        GameObject guideTitleObj = new GameObject("GuideTitle");
+        guideTitleObj.transform.SetParent(guidePanel.transform, false);
+        RectTransform guideTitleRect = guideTitleObj.AddComponent<RectTransform>();
+        guideTitleRect.anchorMin = new Vector2(0, 1);
+        guideTitleRect.anchorMax = new Vector2(1, 1);
+        guideTitleRect.pivot = new Vector2(0.5f, 1);
+        guideTitleRect.sizeDelta = new Vector2(-20, 45);
+        guideTitleRect.anchoredPosition = new Vector2(5, -10);
+        TextMeshProUGUI guideTitleText = guideTitleObj.AddComponent<TextMeshProUGUI>();
+        guideTitleText.text = "";
+        guideTitleText.fontSize = 14;
+        guideTitleText.fontStyle = FontStyles.Bold;
+        guideTitleText.color = new Color(0.4f, 0.85f, 1f);
+        guideTitleText.alignment = TextAlignmentOptions.Left;
+
+        GameObject guideLine = new GameObject("GuideLine");
+        guideLine.transform.SetParent(guidePanel.transform, false);
+        RectTransform guideLineRect = guideLine.AddComponent<RectTransform>();
+        guideLineRect.anchorMin = new Vector2(0, 1);
+        guideLineRect.anchorMax = new Vector2(1, 1);
+        guideLineRect.pivot = new Vector2(0.5f, 1);
+        guideLineRect.sizeDelta = new Vector2(-20, 1);
+        guideLineRect.anchoredPosition = new Vector2(0, -58);
+        Image guideLineImg = guideLine.AddComponent<Image>();
+        guideLineImg.color = new Color(0.3f, 0.75f, 1f, 0.3f);
+
+        GameObject guideDescObj = new GameObject("GuideDesc");
+        guideDescObj.transform.SetParent(guidePanel.transform, false);
+        RectTransform guideDescRect = guideDescObj.AddComponent<RectTransform>();
+        guideDescRect.anchorMin = new Vector2(0, 1);
+        guideDescRect.anchorMax = new Vector2(1, 1);
+        guideDescRect.pivot = new Vector2(0.5f, 1);
+        guideDescRect.sizeDelta = new Vector2(-20, 40);
+        guideDescRect.anchoredPosition = new Vector2(5, -65);
+        TextMeshProUGUI guideDescText = guideDescObj.AddComponent<TextMeshProUGUI>();
+        guideDescText.text = "";
+        guideDescText.fontSize = 12;
+        guideDescText.color = new Color(0.6f, 0.75f, 0.9f);
+        guideDescText.alignment = TextAlignmentOptions.Left;
+
+        GuideManager guideManager = gameObject.AddComponent<GuideManager>();
+        guideManager.SetupPanel(guidePanel);
+        guideManager.SetTitleText(guideTitleText, guideDescText);
+
+        float taskStartY = -115f;
+        for (int i = 0; i < 5; i++)
+        {
+            GameObject taskRow = new GameObject("TaskRow_" + i);
+            taskRow.transform.SetParent(guidePanel.transform, false);
+            RectTransform taskRowRect = taskRow.AddComponent<RectTransform>();
+            taskRowRect.anchorMin = new Vector2(0, 1);
+            taskRowRect.anchorMax = new Vector2(1, 1);
+            taskRowRect.pivot = new Vector2(0.5f, 1);
+            taskRowRect.sizeDelta = new Vector2(-20, 60);
+            taskRowRect.anchoredPosition = new Vector2(5, taskStartY - (i * 68f));
+
+            TextMeshProUGUI taskText = taskRow.AddComponent<TextMeshProUGUI>();
+            taskText.text = "";
+            taskText.fontSize = 12;
+            taskText.color = Color.white;
+            taskText.alignment = TextAlignmentOptions.Left;
+            taskText.enableWordWrapping = true;
+            guideManager.AddTaskText(taskText);
+        }
+
+        guideBtnComp.onClick.AddListener(guideManager.TogglePanel);
+        guideManager.UpdateStep(1);
         reportPanel.SetActive(false);
     }
 }

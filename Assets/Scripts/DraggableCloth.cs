@@ -19,7 +19,7 @@ public class DraggableCloth : MonoBehaviour
 
     [Header("Arayüz Baðlantýsý")]
     public TextMeshProUGUI taskText;
-    public TextMeshProUGUI progressText; // Ekranda yüzdeyi gösterecek yeni yazýmýz
+    public TextMeshProUGUI progressText;
 
     void Start()
     {
@@ -39,11 +39,15 @@ public class DraggableCloth : MonoBehaviour
 
     void OnMouseDown()
     {
-        if (!enabled) return;
+        if (!enabled)
+        {
+            if (ObjectInfoManager.Instance != null)
+                ObjectInfoManager.Instance.ShowClothInfo(this);
+            return;
+        }
         mZCoord = Camera.main.WorldToScreenPoint(gameObject.transform.position).z;
         mOffset = gameObject.transform.position - GetMouseAsWorldPoint();
     }
-
 
     void OnMouseDrag()
     {
@@ -55,12 +59,10 @@ public class DraggableCloth : MonoBehaviour
 
     void OnMouseUp()
     {
-        transform.position = startPos; // startPos doðru mu?
+        transform.position = startPos;
         transform.rotation = Quaternion.identity;
         if (progressText != null && !isCharged)
-        {
             progressText.text = "";
-        }
     }
 
     private Vector3 GetMouseAsWorldPoint()
@@ -70,17 +72,24 @@ public class DraggableCloth : MonoBehaviour
         return Camera.main.ScreenToWorldPoint(mousePoint);
     }
 
-    // Enter yerine tekrar Exit yaptýk. Ýleri-geri sürtme hareketini kusursuz algýlar.
     void OnTriggerExit(Collider other)
     {
-        Debug.Log("Trigger: " + other.name + " kumaþ: " + gameObject.name + " step: " + GameManager.Instance.currentStep);
         if (!enabled) return;
-        Debug.Log("Kumaþ þu objeden ayrýldý: " + other.name);
+        if (GameManager.Instance != null && GameManager.Instance.currentStep == 1)
+        {
+            DraggableRod rod = other.GetComponent<DraggableRod>();
+            if (rod == null || rod.myChargeType != "Glass") return;
+        }
         if (other.CompareTag("Rod") && !isCharged)
         {
             RodIdentity hitRod = other.GetComponent<RodIdentity>();
             if (hitRod != null)
             {
+                if (GameManager.Instance != null && GameManager.Instance.currentStep == 2)
+                {
+                    DraggableRod rod = other.GetComponent<DraggableRod>();
+                    if (rod != null && rod.myChargeType == "Glass") return;
+                }
                 if (GameManager.Instance != null && GameManager.Instance.currentStep == 3)
                 {
                     DraggableRod rod = other.GetComponent<DraggableRod>();
@@ -92,7 +101,6 @@ public class DraggableCloth : MonoBehaviour
                         if (isWool && rod.myChargeType == "Glass") return;
                     }
                 }
-
                 if (GameManager.Instance != null && GameManager.Instance.currentStep == 4)
                 {
                     DraggableRod rod = other.GetComponent<DraggableRod>();
@@ -121,8 +129,29 @@ public class DraggableCloth : MonoBehaviour
                     taskText.color = Color.green;
                     progressText.text = hitRod.rodName + " Tamamen Yuklendi!";
                     progressText.color = Color.green;
+
+                    if (GameManager.Instance != null && GuideManager.Instance != null)
+                    {
+                        int s = GameManager.Instance.currentStep;
+                        int sub = GameManager.Instance.step3SubStep;
+                        if (s == 3 && sub == 1) GuideManager.Instance.CompleteTask(s, 0);
+                        else if (s == 3 && sub == 2) GuideManager.Instance.CompleteTask(s, 1);
+                        else if (s == 4 && sub == 1) GuideManager.Instance.CompleteTask(s, 0);
+                        else if (s == 4 && sub == 2) GuideManager.Instance.CompleteTask(s, 1);
+                        else
+                        {
+                            GuideManager.Instance.CompleteTask(s, 0);
+                            GuideManager.Instance.CompleteTask(s, 1); // yeþile döndü tiki
+                        }
+                    }
                 }
             }
         }
+    }
+
+    void ResetColor()
+    {
+        if (!isCharged && rend != null)
+            rend.material.color = originalColor;
     }
 }

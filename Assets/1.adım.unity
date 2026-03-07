@@ -349,7 +349,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &147483143
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -437,6 +437,7 @@ MonoBehaviour:
   chargedColor: {r: 0, g: 1, b: 0, a: 1}
   forcedOriginalColor: {r: 0, g: 0, b: 0, a: 0}
   isCharged: 0
+  chargeIndicatorOffset: {x: 0, y: 0.5, z: 0}
 --- !u!114 &147483147
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2385,6 +2386,7 @@ MonoBehaviour:
   chargedColor: {r: 0.5312246, g: 1, b: 0, a: 1}
   forcedOriginalColor: {r: 0.23529412, g: 0.7921569, b: 0.972549, a: 1}
   isCharged: 0
+  chargeIndicatorOffset: {x: 0, y: 0.5, z: 0}
 --- !u!114 &569295536
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3500,7 +3502,7 @@ MonoBehaviour:
   currentState: 0
   hingeSnapPoint: {fileID: 259580372}
   hingeSnapPointStep3: {fileID: 1230203236}
-  hingeSnapPointStep4: {fileID: 1231642909}
+  hingeSnapPointStep4: {fileID: 1230203236}
   snapThreshold: 1
   dragHeight: 1.5
   myChargeType: Glass
@@ -3508,6 +3510,7 @@ MonoBehaviour:
   chargedColor: {r: 0.5312246, g: 1, b: 0, a: 1}
   forcedOriginalColor: {r: 0, g: 0, b: 0, a: 0}
   isCharged: 0
+  chargeIndicatorOffset: {x: 0, y: 0.5, z: 0}
 --- !u!54 &1006164351
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -4723,6 +4726,7 @@ MonoBehaviour:
   chargedColor: {r: 0, g: 1, b: 0, a: 1}
   forcedOriginalColor: {r: 0, g: 0, b: 0, a: 0}
   isCharged: 0
+  chargeIndicatorOffset: {x: 0, y: 0.5, z: 0}
 --- !u!54 &1362878155
 Rigidbody:
   m_ObjectHideFlags: 0
