@@ -21,8 +21,12 @@ public class DraggableRod : MonoBehaviour
 
     [Header("Efektler")]
     public Color chargedColor = Color.green;
+    public Color forcedOriginalColor = Color.clear;
     private Color originalColor;
     private Renderer rend;
+
+    [Header("Yük Durumu")]
+    public bool isCharged = false;
 
     private Rigidbody rb;
     private Vector3 startPos;
@@ -33,31 +37,40 @@ public class DraggableRod : MonoBehaviour
     void Awake()
     {
         rend = GetComponent<Renderer>();
-        if (rend != null) originalColor = rend.material.color;
+        rb = GetComponent<Rigidbody>();
+        mainCamera = Camera.main;
+        startPos = transform.position;
+        startRot = transform.rotation;
+        if (rend != null)
+        {
+            originalColor = rend.material.color;
+            if (originalColor.a < 0.1f)
+            {
+                if (forcedOriginalColor != Color.clear)
+                    originalColor = forcedOriginalColor;
+            }
+        }
     }
 
     void Start()
     {
-        mainCamera = Camera.main;
-        rb = GetComponent<Rigidbody>();
-        rend = GetComponent<Renderer>();
-        startPos = transform.position;
-        startRot = transform.rotation;
+        if (mainCamera == null) mainCamera = Camera.main;
         ResetToTable();
         if (rend != null) rend.material.color = originalColor;
     }
 
-   private Transform GetActiveSnapPoint()
-{
-    if (GameManager.Instance != null && GameManager.Instance.currentStep == 4)
-        return hingeSnapPointStep4 != null ? hingeSnapPointStep4 : hingeSnapPoint;
-    if (GameManager.Instance != null && GameManager.Instance.currentStep == 3)
-        return hingeSnapPointStep3 != null ? hingeSnapPointStep3 : hingeSnapPoint;
-    return hingeSnapPoint;
-}
+    private Transform GetActiveSnapPoint()
+    {
+        if (GameManager.Instance != null && GameManager.Instance.currentStep == 4)
+            return hingeSnapPointStep4 != null ? hingeSnapPointStep4 : hingeSnapPoint;
+        if (GameManager.Instance != null && GameManager.Instance.currentStep == 3)
+            return hingeSnapPointStep3 != null ? hingeSnapPointStep3 : hingeSnapPoint;
+        return hingeSnapPoint;
+    }
 
     void OnMouseDown()
     {
+        if (!enabled) return;
         if (currentState == RodState.Suspended) return;
         currentState = RodState.Dragging;
         rb.isKinematic = true;
@@ -67,6 +80,7 @@ public class DraggableRod : MonoBehaviour
 
     void OnMouseDrag()
     {
+        if (!enabled) return;
         if (currentState != RodState.Dragging) return;
         Vector3 mouseScreenPos = new Vector3(Input.mousePosition.x, Input.mousePosition.y, dragDepth);
         Vector3 newWorldPos = mainCamera.ScreenToWorldPoint(mouseScreenPos);
@@ -76,8 +90,8 @@ public class DraggableRod : MonoBehaviour
 
     void OnMouseUp()
     {
+        if (!enabled) return;
         if (currentState != RodState.Dragging) return;
-
         if (GameManager.Instance != null)
         {
             int step = GameManager.Instance.currentStep;
@@ -94,45 +108,48 @@ public class DraggableRod : MonoBehaviour
                     int subStep = GameManager.Instance.step3SubStep;
                     if (subStep == 1 && myChargeType == "Plastic")
                     {
-                        GameManager.Instance.taskText.text = "Önce cam çubuğu yünlü kumaşla yükleyip asın!";
-                        ResetToTable();
-                        return;
-                    }
-                    if (subStep == 2 && myChargeType == "Glass")
-                    {
-                        GameManager.Instance.taskText.text = "Simdi plastik çubuğu ipek kumaşla yükleyip asın!";
-                        ResetToTable();
-                        return;
-                    }
-                    if (subStep == 1 && myChargeType == "Glass" && cloth.gameObject.name == "WoolCloth" && cloth.isCharged) correctCharged = true;
-                    if (subStep == 2 && myChargeType == "Plastic" && cloth.gameObject.name == "SilkCloth" && cloth.isCharged) correctCharged = true;
-                }
-                if (step == 4)
-                {
-                    int subStep = GameManager.Instance.step3SubStep;
-                    if (subStep == 1 && myChargeType == "Plastic")
-                    {
                         GameManager.Instance.taskText.text = "Önce cam çubuğu ipek kumaşla yükleyip asın!";
                         ResetToTable();
                         return;
                     }
                     if (subStep == 2 && myChargeType == "Glass")
                     {
-                        GameManager.Instance.taskText.text = "Şimdi plastik çubuğu ipek kumaşla yükleyip asın!";
+                        GameManager.Instance.taskText.text = "Simdi plastik çubuğu yünlü kumaşla yükleyip asın!";
                         ResetToTable();
                         return;
                     }
                     if (subStep == 1 && myChargeType == "Glass" && cloth.gameObject.name == "SilkCloth" && cloth.isCharged) correctCharged = true;
-                    if (subStep == 2 && myChargeType == "Plastic" && cloth.gameObject.name == "SilkCloth" && cloth.isCharged) correctCharged = true;
+                    if (subStep == 2 && myChargeType == "Plastic" && cloth.gameObject.name == "WoolCloth" && cloth.isCharged) correctCharged = true;
+                }
+
+                if (step == 4)
+                {
+                    int subStep = GameManager.Instance.step3SubStep;
+                    if (subStep == 1 && gameObject.name == "GlassRod2_Drag")
+                    {
+                        GameManager.Instance.taskText.text = "Önce birinci cam çubuğu ipek kumaşla yükleyip asın!";
+                        ResetToTable();
+                        return;
+                    }
+                    if (subStep == 2 && gameObject.name == "GlassRod_Drag")
+                    {
+                        GameManager.Instance.taskText.text = "Simdi ikinci cam çubuğu ipek kumaşla yükleyip asın!";
+                        ResetToTable();
+                        return;
+                    }
+                    if (subStep == 1 && gameObject.name == "GlassRod_Drag" && cloth.gameObject.name == "SilkCloth" && cloth.isCharged) correctCharged = true;
+                    if (subStep == 2 && gameObject.name == "GlassRod2_Drag" && cloth.gameObject.name == "SilkCloth" && cloth.isCharged) correctCharged = true;
                 }
             }
 
             if (!correctCharged)
             {
                 if (step == 3 && myChargeType == "Glass")
-                    GameManager.Instance.taskText.text = "Cam çubuğu yünlü kumaşla yükleyin!";
+                    GameManager.Instance.taskText.text = "Cam çubuğu ipek kumaşla yükleyin!";
                 else if (step == 3 && myChargeType == "Plastic")
-                    GameManager.Instance.taskText.text = "Plastik çubuğu ipek kumaşla yükleyin!";
+                    GameManager.Instance.taskText.text = "Plastik çubuğu yünlü kumaşla yükleyin!";
+                else if (step == 4)
+                    GameManager.Instance.taskText.text = "Cam çubuğu ipek kumaşla yükleyin!";
                 else
                     GameManager.Instance.taskText.text = "Once cubuğu dogru kumasla yukleyin!";
                 ResetToTable();
@@ -164,6 +181,7 @@ public class DraggableRod : MonoBehaviour
     private void ResetToTable()
     {
         currentState = RodState.OnTable;
+        isCharged = false;
         if (rend != null) rend.material.color = originalColor;
 
         if (hingeSnapPoint != null)
@@ -176,11 +194,20 @@ public class DraggableRod : MonoBehaviour
             HingeJoint joint = hingeSnapPointStep3.GetComponent<HingeJoint>();
             if (joint != null) Destroy(joint);
         }
+        if (hingeSnapPointStep4 != null)
+        {
+            HingeJoint joint = hingeSnapPointStep4.GetComponent<HingeJoint>();
+            if (joint != null) Destroy(joint);
+        }
 
-        rb.linearVelocity = Vector3.zero;
-        rb.angularVelocity = Vector3.zero;
-        rb.isKinematic = true;
-        rb.useGravity = false;
+        if (rb != null)
+        {
+            rb.isKinematic = false;
+            rb.linearVelocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+            rb.isKinematic = true;
+            rb.useGravity = false;
+        }
 
         transform.position = startPos;
         transform.rotation = startRot;
@@ -235,17 +262,22 @@ public class DraggableRod : MonoBehaviour
         else
             suspendedRodInScene2 = this;
 
-        Debug.Log(gameObject.name + " standa asıldı!");
-
         if (GameManager.Instance != null && (GameManager.Instance.currentStep == 3 || GameManager.Instance.currentStep == 4))
         {
-            if (myChargeType == "Glass" && GameManager.Instance.step3SubStep == 1)
+            int curStep = GameManager.Instance.currentStep;
+            if (GameManager.Instance.step3SubStep == 1)
             {
                 GameManager.Instance.step3SubStep = 2;
-                GameManager.Instance.taskText.text = "Simdi plastik cubugu ipek kumasla yukleyip asin!";
+                GameManager.Instance.taskText.text = curStep == 3
+                    ? "Simdi plastik cubugu yünlü kumasla yukleyip asin!"
+                    : "Simdi ikinci cam cubugu ipek kumasla yukleyip asin!";
+                if (GameManager.Instance.silkCloth != null)
+                    GameManager.Instance.silkCloth.ResetCloth();
+                if (GameManager.Instance.woolCloth != null)
+                    GameManager.Instance.woolCloth.ResetCloth();
                 GameManager.Instance.UpdateStep3Access();
             }
-            else if (myChargeType == "Plastic" && GameManager.Instance.step3SubStep == 2)
+            else if (GameManager.Instance.step3SubStep == 2)
             {
                 GameManager.Instance.step3SubStep = 3;
                 GameManager.Instance.taskText.text = "Ikisinin etkilesimini gozlemleyin!";
@@ -261,32 +293,30 @@ public class DraggableRod : MonoBehaviour
         if (step != 3 && step != 4) return;
         if (currentState != RodState.Suspended) return;
         if (suspendedRodInScene == null || suspendedRodInScene2 == null) return;
+        if (suspendedRodInScene.currentState != RodState.Suspended) return;
+        if (suspendedRodInScene2.currentState != RodState.Suspended) return;
         ApplyCoulombForce();
     }
 
     private void ApplyCoulombForce()
     {
+        if (!isCharged) return;
         DraggableRod otherRod = (suspendedRodInScene == this) ? suspendedRodInScene2 : suspendedRodInScene;
         if (otherRod == null) return;
-
-        Rigidbody myRb = GetComponent<Rigidbody>();
-        if (myRb == null) return;
-
+        if (!otherRod.isCharged) return;
         Vector3 direction = (otherRod.transform.position - transform.position);
         float distance = direction.magnitude;
-
         if (distance < 0.6f || distance > 5.0f) return;
-
         Vector3 normalizedDirection = direction.normalized;
         float forceDirection = (myChargeType == otherRod.myChargeType) ? -1f : 1f;
         float forceMagnitude = coulombForceMultiplier / (distance * distance);
         Vector3 forceToApply = normalizedDirection * forceDirection * forceMagnitude;
-
-        myRb.AddForce(forceToApply, ForceMode.Force);
+        rb.AddForce(forceToApply, ForceMode.Force);
     }
 
     public void ChangeToChargedColor()
     {
+        isCharged = true;
         if (rend != null) rend.material.color = chargedColor;
     }
 

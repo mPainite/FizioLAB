@@ -73,6 +73,7 @@ public class DraggableCloth : MonoBehaviour
     // Enter yerine tekrar Exit yaptýk. Ýleri-geri sürtme hareketini kusursuz algýlar.
     void OnTriggerExit(Collider other)
     {
+        Debug.Log("Trigger: " + other.name + " kumaþ: " + gameObject.name + " step: " + GameManager.Instance.currentStep);
         if (!enabled) return;
         Debug.Log("Kumaþ þu objeden ayrýldý: " + other.name);
         if (other.CompareTag("Rod") && !isCharged)
@@ -87,8 +88,20 @@ public class DraggableCloth : MonoBehaviour
                     {
                         bool isWool = gameObject.name == "WoolCloth";
                         bool isSilk = gameObject.name == "SilkCloth";
-                        if (isWool && rod.myChargeType == "Plastic") return;
-                        if (isSilk && rod.myChargeType == "Glass") return;
+                        if (isSilk && rod.myChargeType == "Plastic") return;
+                        if (isWool && rod.myChargeType == "Glass") return;
+                    }
+                }
+
+                if (GameManager.Instance != null && GameManager.Instance.currentStep == 4)
+                {
+                    DraggableRod rod = other.GetComponent<DraggableRod>();
+                    if (rod != null)
+                    {
+                        if (gameObject.name == "WoolCloth") return;
+                        int subStep = GameManager.Instance.step3SubStep;
+                        if (subStep == 1 && rod.gameObject.name == "GlassRod2_Drag") return;
+                        if (subStep == 2 && rod.gameObject.name == "GlassRod_Drag") return;
                     }
                 }
 
@@ -104,7 +117,6 @@ public class DraggableCloth : MonoBehaviour
                     DraggableRod hitDraggable = other.GetComponent<DraggableRod>();
                     if (hitDraggable != null)
                         hitDraggable.ChangeToChargedColor();
-
                     taskText.text = "Harika! " + hitRod.rodName + " yüklendi. Simdi onu standa asabilirsin.";
                     taskText.color = Color.green;
                     progressText.text = hitRod.rodName + " Tamamen Yuklendi!";

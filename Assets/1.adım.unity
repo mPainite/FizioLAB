@@ -205,7 +205,7 @@ MonoBehaviour:
   step1Completed: 0
   step2Completed: 0
   step3SubStep: 1
-  glassRod2: {fileID: 0}
+  glassRod2: {fileID: 569295535}
 --- !u!1 &131433225
 GameObject:
   m_ObjectHideFlags: 0
@@ -435,6 +435,8 @@ MonoBehaviour:
   myChargeType: Plastic
   coulombForceMultiplier: 5
   chargedColor: {r: 0, g: 1, b: 0, a: 1}
+  forcedOriginalColor: {r: 0, g: 0, b: 0, a: 0}
+  isCharged: 0
 --- !u!114 &147483147
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2306,12 +2308,12 @@ GameObject:
   - component: {fileID: 569295534}
   - component: {fileID: 569295533}
   m_Layer: 0
-  m_Name: GlassRod_Drag2
+  m_Name: GlassRod2_Drag
   m_TagString: Rod
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!65 &569295533
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -2381,6 +2383,8 @@ MonoBehaviour:
   myChargeType: Glass
   coulombForceMultiplier: 2
   chargedColor: {r: 0.5312246, g: 1, b: 0, a: 1}
+  forcedOriginalColor: {r: 0.23529412, g: 0.7921569, b: 0.972549, a: 1}
+  isCharged: 0
 --- !u!114 &569295536
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2460,7 +2464,7 @@ Transform:
   m_GameObject: {fileID: 569295532}
   serializedVersion: 2
   m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: -0.8, y: 1.05, z: -0.5}
+  m_LocalPosition: {x: -1.2, y: 1.05, z: -0.5}
   m_LocalScale: {x: 0.05, y: 0.4, z: 0.05}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -3502,6 +3506,8 @@ MonoBehaviour:
   myChargeType: Glass
   coulombForceMultiplier: 2
   chargedColor: {r: 0.5312246, g: 1, b: 0, a: 1}
+  forcedOriginalColor: {r: 0, g: 0, b: 0, a: 0}
+  isCharged: 0
 --- !u!54 &1006164351
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -4715,6 +4721,8 @@ MonoBehaviour:
   myChargeType: Plastic
   coulombForceMultiplier: 5
   chargedColor: {r: 0, g: 1, b: 0, a: 1}
+  forcedOriginalColor: {r: 0, g: 0, b: 0, a: 0}
+  isCharged: 0
 --- !u!54 &1362878155
 Rigidbody:
   m_ObjectHideFlags: 0
